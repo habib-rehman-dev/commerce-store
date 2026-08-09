@@ -27,9 +27,9 @@ export const getProducts = async (
     const { categoryId, brandId, status } = req.query;
 
     const products = await productService.getProducts({
-      categoryId: categoryId as string | undefined,
-      brandId: brandId as string | undefined,
-      status: status as "active" | "inactive" | undefined,
+      ...(categoryId && { categoryId: categoryId as string }),
+      ...(brandId && { brandId: brandId as string }),
+      ...(status && { status: status as "active" | "inactive" }),
     });
 
     return res.status(200).json({
@@ -47,7 +47,7 @@ export const getProductById = async (
   next: NextFunction,
 ) => {
   try {
-    const product = await productService.getProductById(req.params.id);
+    const product = await productService.getProductById(req.params.id as string);
 
     if (!product) {
       return res.status(404).json({
@@ -71,7 +71,7 @@ export const getProductBySlug = async (
   next: NextFunction,
 ) => {
   try {
-    const product = await productService.getProductBySlug(req.params.slug);
+    const product = await productService.getProductBySlug(req.params.slug as string);
 
     if (!product) {
       return res.status(404).json({
@@ -96,7 +96,7 @@ export const updateProduct = async (
 ) => {
   try {
     const product = await productService.updateProduct(
-      req.params.id,
+      req.params.id as string,
       req.body,
     );
 
@@ -122,7 +122,7 @@ export const deleteProduct = async (
   next: NextFunction,
 ) => {
   try {
-    const product = await productService.deleteProduct(req.params.id);
+    const product = await productService.deleteProduct(req.params.id as string);
 
     if (!product) {
       return res.status(404).json({
