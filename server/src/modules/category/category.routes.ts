@@ -6,6 +6,7 @@ import {
   categoryIdValidator,
 } from "./category.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
+import { uploadSingleImage } from "../../shared/middleware/upload.middleware.js";
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.get(
 // POST /api/categories
 router.post(
   "/",
+  uploadSingleImage,
   createCategoryValidator,
   validate,
   categoryController.createCategory,

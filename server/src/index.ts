@@ -11,7 +11,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.get("/api/health", (_req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({ success: true, message: "API is running" });
 });
 

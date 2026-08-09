@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { Category } from "./category.model.js";
+import { uploadToCloudinary } from "../../config/cloudinary.js";
 
 interface CreateCategoryData {
   name: string;
@@ -21,28 +22,29 @@ interface UpdateCategoryData {
   sortOrder?: number;
 }
 
-export const createCategory = async (data: CreateCategoryData) => {
+export const createCategory = async (
+  data: CreateCategoryData,
+  fileBuffer?: Buffer
+) => {
   if (data.parentCategoryId) {
     const parentCategory = await Category.findById(data.parentCategoryId);
-
     if (!parentCategory) {
       throw new Error("Parent category not found");
     }
   }
 
-  const category = await Category.create({
-    name: data.name,
-    slug: data.slug,
-    ...(data.description !== undefined && { description: data.description }),
-    ...(data.image !== undefined && { image: data.image }),
-    parentCategoryId: data.parentCategoryId
-      ? new Types.ObjectId(data.parentCategoryId)
-      : null,
-    status: data.status ?? "active",
-    sortOrder: data.sortOrder ?? 0,
+  let imageUrl = "";
+  if (fileBuffer) {
+    const uploadResult = await uploadToCloudinary(fileBuffer, "categories");
+    imageUrl = uploadResult.url;
+  }
+
+  const newCategory = await Category.create({
+    ...data,
+    image: imageUrl,
   });
 
-  return category;
+  return newCategory;
 };
 
 export const getCategories = async () => {

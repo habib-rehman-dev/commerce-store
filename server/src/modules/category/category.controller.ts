@@ -4,10 +4,13 @@ import * as categoryService from "./category.service.js";
 export const createCategory = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const category = await categoryService.createCategory(req.body);
+    const category = await categoryService.createCategory(
+      req.body,
+      req.file?.buffer
+    );
 
     return res.status(201).json({
       success: true,
@@ -17,7 +20,6 @@ export const createCategory = async (
     next(error);
   }
 };
-
 export const getCategories = async (
   _req: Request,
   res: Response,
@@ -41,7 +43,9 @@ export const getCategoryById = async (
   next: NextFunction,
 ) => {
   try {
-    const category = await categoryService.getCategoryById(req.params.id as string);
+    const category = await categoryService.getCategoryById(
+      req.params.id as string,
+    );
 
     if (!category) {
       return res.status(404).json({
@@ -65,7 +69,9 @@ export const getCategoryBySlug = async (
   next: NextFunction,
 ) => {
   try {
-    const category = await categoryService.getCategoryBySlug(req.params.slug as string);
+    const category = await categoryService.getCategoryBySlug(
+      req.params.slug as string,
+    );
 
     if (!category) {
       return res.status(404).json({
@@ -89,7 +95,9 @@ export const getChildCategories = async (
   next: NextFunction,
 ) => {
   try {
-    const categories = await categoryService.getChildCategories(req.params.id as string);
+    const categories = await categoryService.getChildCategories(
+      req.params.id as string,
+    );
 
     return res.status(200).json({
       success: true,
@@ -107,7 +115,7 @@ export const updateCategory = async (
 ) => {
   try {
     const category = await categoryService.updateCategory(
-      req.params.id as string , 
+      req.params.id as string,
       req.body,
     );
 
@@ -133,7 +141,9 @@ export const deleteCategory = async (
   next: NextFunction,
 ) => {
   try {
-    const category = await categoryService.deleteCategory(req.params.id as string);
+    const category = await categoryService.deleteCategory(
+      req.params.id as string,
+    );
 
     if (!category) {
       return res.status(404).json({
