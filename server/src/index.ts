@@ -1,31 +1,50 @@
 import express, { type Request, type Response } from "express";
-import cors from 'cors'
+import cors from "cors";
 import { corsOptions } from "./config/cors.js";
+import { clerkMiddleware } from "./shared/middleware/auth.middleware.js";
 
 import categoryRoutes from "./modules/category/category.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
-import { errorHandler } from "./shared/middleware/error.middleware.js";
+// import specificationRoutes from "./modules/specification/specification.routes.js";
+import userRoutes from "./modules/user/user.routes.js";
+import userWebhookRoutes from "./modules/user/user.webhook.routes.js";
+// import couponRoutes from "./modules/coupon/coupon.routes.js";
 
 const app = express();
 
 app.use(cors(corsOptions));
+
+/*
+ * CRITICAL ORDERING: the webhook route needs the RAW request body to
+ * verify Clerk's signature, so it's mounted BEFORE express.json().
+ * If you move this below express.json(), webhook verification will
+ * break silently with a confusing signature-mismatch error.
+ */
+app.use("/api/webhooks", userWebhookRoutes);
+
 app.use(express.json());
 
-app.get("/", (_req: Request, res: Response) => {
+// clerkMiddleware() attaches auth state to every request from here down.
+// It does NOT block unauthenticated requests by itself — requireAuth() does that per-route.
+app.use(clerkMiddleware());
+
+app.get("/api/health", (_req: Request, res: Response) => {
   res.status(200).json({ success: true, message: "API is running" });
 });
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/products", productRoutes);
+// app.use("/api/specifications", specificationRoutes);
+app.use("/api/users", userRoutes);
+// app.use("/api/coupons", couponRoutes);
 
 // 404 for any route that didn't match above
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
-app.use(errorHandler);
 /*
  * TODO: centralized error-handling middleware goes here, as the
  * very last app.use(). It needs 4 params (err, req, res, next) —

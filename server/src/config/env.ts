@@ -1,4 +1,10 @@
-const requiredEnvVars = ["MONGODB_URI", "CLIENT_URL"] as const;
+
+
+const requiredEnvVars = [
+  "MONGODB_URI",
+  "CLIENT_URL",
+  "CLERK_WEBHOOK_SECRET",
+] as const;
 
 for (const key of requiredEnvVars) {
   if (!process.env[key]) {
@@ -11,4 +17,5 @@ export const env = {
   PORT: process.env.PORT ?? "5000",
   MONGODB_URI: process.env.MONGODB_URI as string,
   CLIENT_URL: process.env.CLIENT_URL as string,
+  CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET as string,
 };

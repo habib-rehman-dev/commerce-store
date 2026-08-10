@@ -27,6 +27,7 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "mongoose": "^9.9.1",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "svix": "^1.99.1"
   }
 }

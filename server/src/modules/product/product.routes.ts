@@ -36,11 +36,12 @@ router.post(
 // PATCH /api/products/:id
 router.patch(
   "/:id",
+  uploadProductImages,
+  parseProductData,
   updateProductValidator,
   validate,
   productController.updateProduct,
 );
-
 // product.routes.ts
 // DELETE /api/products/:id
 router.delete("/:id", productController.deleteProduct);

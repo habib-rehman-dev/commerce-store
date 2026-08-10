@@ -96,9 +96,11 @@ export const updateProduct = async (
   next: NextFunction,
 ) => {
   try {
+    const files = req.files as Express.Multer.File[];
     const product = await productService.updateProduct(
       req.params.id as string,
       req.body,
+      files,
     );
 
     if (!product) {

@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { Product } from "./product.model.js";
 import { Category } from "../category/category.model.js";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../config/cloudinary.js";
+import { Brand } from "../brand/brand.model.js";
 
 interface ProductVariantInput {
   sku: string;
@@ -101,29 +102,79 @@ export const getProductBySlug = async (slug: string) => {
 export const updateProduct = async (
   productId: string,
   data: UpdateProductData,
+  files?: Express.Multer.File[],
 ) => {
-  if (data.categoryId) {
-    const category = await Category.findById(data.categoryId);
-
-    if (!category) {
-      throw new Error("Category not found");
-    }
+  // 1. Fetch current product state
+  const product = await Product.findById(productId);
+  if (!product) {
+    return null;
   }
 
-  const updateData = {
-    ...data,
-    ...(data.categoryId !== undefined && {
-      categoryId: new Types.ObjectId(data.categoryId),
-    }),
-    ...(data.brandId !== undefined && {
-      brandId: new Types.ObjectId(data.brandId),
-    }),
-  };
+  // 2. Validate Category or Brand if provided
+  if (data.categoryId) {
+    const category = await Category.findById(data.categoryId);
+    if (!category) throw new Error("Category not found");
+  }
 
-  return Product.findByIdAndUpdate(productId, updateData, {
-    new: true,
-    runValidators: true,
-  }).lean();
+  if (data.brandId) {
+    const brand = await Brand.findById(data.brandId);
+    if (!brand) throw new Error("Brand not found");
+  }
+
+  // 3. Upload new images if attached
+  let newUploadResults: { url: string; publicId: string }[] = [];
+  if (files && files.length > 0) {
+    newUploadResults = await Promise.all(
+      files.map((file) =>
+        uploadToCloudinary(file.buffer, "e-commerce_store/products")
+      )
+    );
+  }
+
+  // 4. Build update object
+  const updateData: Record<string, any> = { ...data };
+
+  if (data.categoryId) {
+    updateData.categoryId = new Types.ObjectId(data.categoryId);
+  }
+  if (data.brandId) {
+    updateData.brandId = new Types.ObjectId(data.brandId);
+  }
+
+  if (newUploadResults.length > 0) {
+    updateData.images = newUploadResults.map((r) => r.url);
+    updateData.imagePublicIds = newUploadResults.map((r) => r.publicId);
+  }
+
+  // 5. Update DB & handle Cloudinary cleanup
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      updateData,
+      { new: true, runValidators: true }
+    ).lean();
+
+    // Delete old images from Cloudinary only after successful DB update
+    if (
+      newUploadResults.length > 0 &&
+      product.imagePublicIds &&
+      product.imagePublicIds.length > 0
+    ) {
+      await Promise.all(
+        product.imagePublicIds.map((publicId) => deleteFromCloudinary(publicId))
+      );
+    }
+
+    return updatedProduct;
+  } catch (error) {
+    // Rollback: delete newly uploaded images if DB update failed
+    if (newUploadResults.length > 0) {
+      await Promise.all(
+        newUploadResults.map((r) => deleteFromCloudinary(r.publicId))
+      );
+    }
+    throw error;
+  }
 };
 
 export const deleteProduct = async (id: string) => {
