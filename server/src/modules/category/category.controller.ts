@@ -140,25 +140,22 @@ export const updateCategory = async (
   }
 };
 
-export const deleteCategory = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const category = await categoryService.deleteCategory(
-      req.params.id as string,
-    );
 
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
+export const deleteCategory = async (id: string) => {
+  // 1. Find category to retrieve its imagePublicId
+  const category = await Category.findById(id);
 
-    return res.status(204).send();
-  } catch (error) {
-    next(error);
+  if (!category) {
+    return null;
   }
+
+  // 2. Delete image from Cloudinary if a public ID exists
+  if (category.imagePublicId) {
+    await deleteFromCloudinary(category.imagePublicId);
+  }
+
+  // 3. Delete category document from MongoDB
+  await category.deleteOne();
+
+  return category;
 };
