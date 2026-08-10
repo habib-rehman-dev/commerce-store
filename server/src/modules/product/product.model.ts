@@ -84,6 +84,10 @@ const productSchema = new Schema<IProduct>(
       type: [String],
       default: [],
     },
+    imagePublicIds: {
+      type: [String],
+      default: [],
+    },
 
     variants: {
       type: [productVariantSchema],

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import * as brandService from "./brand.service.js";
+import { deleteFromCloudinary } from "../../config/cloudinary.js";
 
 export const createBrand = async (
   req: Request,
@@ -119,6 +120,10 @@ export const deleteBrand = async (
 ) => {
   try {
     const brand = await brandService.deleteBrand(req.params.id as string);
+
+     if (brand?.logoPublicId) {
+        await deleteFromCloudinary(brand?.logoPublicId);
+      }
 
     if (!brand) {
       return res.status(404).json({

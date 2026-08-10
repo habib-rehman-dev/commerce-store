@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { Product } from "./product.model.js";
 import { Category } from "../category/category.model.js";
+import { deleteFromCloudinary, uploadToCloudinary } from "../../config/cloudinary.js";
 
 interface ProductVariantInput {
   sku: string;
@@ -33,31 +34,44 @@ interface UpdateProductData {
   status?: "active" | "inactive";
 }
 
-export const createProduct = async (data: CreateProductData) => {
-  const category = await Category.findById(data.categoryId);
 
-  if (!category) {
-    throw new Error("Category not found");
+
+export const createProduct = async (
+  data: CreateProductData,
+  files?: Express.Multer.File[]
+) => {
+  let uploadResults: { url: string; publicId: string }[] = [];
+
+  if (files && files.length > 0) {
+    uploadResults = await Promise.all(
+      files.map((file) =>
+        uploadToCloudinary(file.buffer, "e-commerce_store/products")
+      )
+    );
   }
 
-  /*
-   * TODO once Brand module exists: verify brandId the same way
-   * we verify categoryId above. Skipped for now since there is
-   * no Brand collection to check against yet.
-   */
+  try {
+    const product = await Product.create({
+      name: data.name,
+      slug: data.slug,
+      ...(data.description !== undefined && { description: data.description }),
+      categoryId: new Types.ObjectId(data.categoryId),
+      brandId: new Types.ObjectId(data.brandId),
+      images: uploadResults.map((r) => r.url),
+      imagePublicIds: uploadResults.map((r) => r.publicId), // Store public IDs
+      variants: data.variants,
+      status: data.status ?? "active",
+    });
 
-  const product = await Product.create({
-    name: data.name,
-    slug: data.slug,
-    ...(data.description !== undefined && { description: data.description }),
-    categoryId: new Types.ObjectId(data.categoryId),
-    brandId: new Types.ObjectId(data.brandId),
-    images: data.images ?? [],
-    variants: data.variants,
-    status: data.status ?? "active",
-  });
-
-  return product;
+    return product;
+  } catch (error) {
+    if (uploadResults.length > 0) {
+      await Promise.all(
+        uploadResults.map((item) => deleteFromCloudinary(item.publicId))
+      );
+    }
+    throw error;
+  }
 };
 
 export const getProducts = async (filters: {
@@ -112,11 +126,23 @@ export const updateProduct = async (
   }).lean();
 };
 
-export const deleteProduct = async (productId: string) => {
-  /*
-   * Unlike Category, Product has no "children" concept to block on.
-   * Later: check whether any pending Orders reference this product
-   * before allowing a hard delete — for now, a plain delete is fine.
-   */
-  return Product.findByIdAndDelete(productId);
+export const deleteProduct = async (id: string) => {
+  // 1. Fetch product to access imagePublicIds
+  const product = await Product.findById(id);
+
+  if (!product) {
+    return null;
+  }
+
+  // 2. Delete all uploaded images from Cloudinary concurrently
+  if (product.imagePublicIds && product.imagePublicIds.length > 0) {
+    await Promise.all(
+      product.imagePublicIds.map((publicId) => deleteFromCloudinary(publicId))
+    );
+  }
+
+  // 3. Delete product document from MongoDB
+  await product.deleteOne();
+
+  return product;
 };

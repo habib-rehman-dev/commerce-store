@@ -6,6 +6,8 @@ import {
   productIdValidator,
 } from "./product.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
+import { parseProductData } from "../../shared/middleware/parseJsonBody.middleware.js";
+import { uploadProductImages } from "../../shared/middleware/upload.middleware.js";
 const router = Router();
 
 // GET /api/products?categoryId=...&brandId=...&status=active
@@ -25,11 +27,12 @@ router.get(
 // POST /api/products
 router.post(
   "/",
+  uploadProductImages,
+  parseProductData,
   createProductValidator,
   validate,
-  productController.createProduct,
+  productController.createProduct
 );
-
 // PATCH /api/products/:id
 router.patch(
   "/:id",
@@ -38,12 +41,7 @@ router.patch(
   productController.updateProduct,
 );
 
+// product.routes.ts
 // DELETE /api/products/:id
-router.delete(
-  "/:id",
-  productIdValidator,
-  validate,
-  productController.deleteProduct,
-);
-
+router.delete("/:id", productController.deleteProduct);
 export default router;

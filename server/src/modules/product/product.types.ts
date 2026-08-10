@@ -14,6 +14,7 @@ export interface IProduct {
   slug: string;
   description?: string;
   categoryId: Types.ObjectId;
+  imagePublicIds?: string[];
   brandId: Types.ObjectId;
   images: string[];
   variants: IProductVariant[];

@@ -4,10 +4,11 @@ import * as productService from "./product.service.js";
 export const createProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const product = await productService.createProduct(req.body);
+    const files = req.files as Express.Multer.File[];
+    const product = await productService.createProduct(req.body, files);
 
     return res.status(201).json({
       success: true,
@@ -116,10 +117,11 @@ export const updateProduct = async (
   }
 };
 
+// product.controller.ts
 export const deleteProduct = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const product = await productService.deleteProduct(req.params.id as string);
@@ -136,3 +138,4 @@ export const deleteProduct = async (
     next(error);
   }
 };
+
