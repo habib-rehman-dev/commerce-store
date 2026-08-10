@@ -20,7 +20,7 @@ export const connectDB = async () => {
     return;
   }
 
-  await mongoose.connect(env.MONGODB_URI);
+  await mongoose.connect(`${env.MONGODB_URI}`, { dbName: "e-commerce_store" });
   isConnected = true;
 
   if (env.NODE_ENV !== "production") {

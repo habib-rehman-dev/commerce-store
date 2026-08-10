@@ -1,6 +1,10 @@
 import { Types } from "mongoose";
+
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../../config/cloudinary.js";
 import { Category } from "./category.model.js";
-import { uploadToCloudinary } from "../../config/cloudinary.js";
 
 interface CreateCategoryData {
   name: string;
@@ -24,8 +28,9 @@ interface UpdateCategoryData {
 
 export const createCategory = async (
   data: CreateCategoryData,
-  fileBuffer?: Buffer
+  fileBuffer?: Buffer,
 ) => {
+  // 1. Parent category check (Do this before uploading image to avoid unnecessary upload)
   if (data.parentCategoryId) {
     const parentCategory = await Category.findById(data.parentCategoryId);
     if (!parentCategory) {
@@ -33,18 +38,32 @@ export const createCategory = async (
     }
   }
 
-  let imageUrl = "";
+  let uploadResult: { url: string; publicId: string } | null = null;
+
+  // 2. Upload image to Cloudinary if file exists
   if (fileBuffer) {
-    const uploadResult = await uploadToCloudinary(fileBuffer, "categories");
-    imageUrl = uploadResult.url;
+    uploadResult = await uploadToCloudinary(
+      fileBuffer,
+      "e-commerce_store/categories",
+    );
   }
 
-  const newCategory = await Category.create({
-    ...data,
-    image: imageUrl,
-  });
+  // 3. Save to database with cleanup on failure
+  try {
+    const newCategory = await Category.create({
+      ...data,
+      image: uploadResult?.url || "",
+      imagePublicId: uploadResult?.publicId || "", // Storing this helps when deleting category later
+    });
 
-  return newCategory;
+    return newCategory;
+  } catch (error) {
+    // If DB save failed and an image was uploaded, roll back by deleting it
+    if (uploadResult?.publicId) {
+      await deleteFromCloudinary(uploadResult.publicId);
+    }
+    throw error;
+  }
 };
 
 export const getCategories = async () => {
@@ -99,19 +118,21 @@ export const updateCategory = async (
   }).lean();
 };
 
-export const deleteCategory = async (categoryId: string) => {
-  const childrenCount = await Category.countDocuments({
-    parentCategoryId: new Types.ObjectId(categoryId),
-  });
+export const deleteCategory = async (id: string) => {
+  // 1. Find category to retrieve its imagePublicId
+  const category = await Category.findById(id);
 
-  if (childrenCount > 0) {
-    throw new Error("Cannot delete a category that has child categories");
+  if (!category) {
+    return null;
   }
 
-  /*
-   * TODO once Product exists: also block deletion if any
-   * products reference this category (orphaned reference risk).
-   */
+  // 2. Delete image from Cloudinary if a public ID exists
+  if (category.imagePublicId) {
+    await deleteFromCloudinary(category.imagePublicId);
+  }
 
-  return Category.findByIdAndDelete(categoryId);
+  // 3. Delete category document from MongoDB
+  await category.deleteOne();
+
+  return category;
 };

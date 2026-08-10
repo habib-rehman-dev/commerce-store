@@ -6,6 +6,7 @@ import {
   brandIdValidator,
 } from "./brand.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
+import {  uploadSingleLogo } from "../../shared/middleware/upload.middleware.js";
 
 const router = Router();
 
@@ -21,10 +22,12 @@ router.get("/:id", brandIdValidator, validate, brandController.getBrandById);
 // POST /api/brands
 router.post(
   "/",
+  uploadSingleLogo,
   createBrandValidator,
   validate,
   brandController.createBrand,
 );
+
 
 // PATCH /api/brands/:id
 router.patch(

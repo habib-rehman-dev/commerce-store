@@ -1,12 +1,17 @@
 import type { Request, Response, NextFunction } from "express";
 import * as categoryService from "./category.service.js";
 
+import { Category } from "./category.model.js";
+import { deleteFromCloudinary } from "../../config/cloudinary.js";
+
+
 export const createCategory = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    console.log("request body", req.body);
     const category = await categoryService.createCategory(
       req.body,
       req.file?.buffer

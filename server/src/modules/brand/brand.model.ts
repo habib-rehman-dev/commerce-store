@@ -26,6 +26,10 @@ const brandSchema = new Schema<IBrand>(
       type: String,
       trim: true,
     },
+    logoPublicId: {
+      type: String,
+      trim: true,
+    },
 
     status: {
       type: String,

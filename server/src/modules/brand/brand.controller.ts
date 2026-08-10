@@ -6,8 +6,13 @@ export const createBrand = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log("request body", req.body);
+  console.log("request file", req.file);
   try {
-    const brand = await brandService.createBrand(req.body);
+    const brand = await brandService.createBrand(
+      req.body,
+      req.file?.buffer
+    );
 
     return res.status(201).json({
       success: true,

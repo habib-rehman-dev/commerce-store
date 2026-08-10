@@ -5,6 +5,7 @@ import { corsOptions } from "./config/cors.js";
 import categoryRoutes from "./modules/category/category.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
+import { errorHandler } from "./shared/middleware/error.middleware.js";
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
+app.use(errorHandler);
 /*
  * TODO: centralized error-handling middleware goes here, as the
  * very last app.use(). It needs 4 params (err, req, res, next) —

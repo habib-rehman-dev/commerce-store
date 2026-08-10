@@ -5,10 +5,9 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY as string,
   api_secret: process.env.CLOUDINARY_API_SECRET as string,
 });
-
 export const uploadToCloudinary = (
   fileBuffer: Buffer,
-  folder: string = "categories"
+  folder: string = "e-commerce_store/categories"
 ): Promise<{ url: string; publicId: string }> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -23,4 +22,12 @@ export const uploadToCloudinary = (
     );
     uploadStream.end(fileBuffer);
   });
+};
+
+export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error("Failed to delete image from Cloudinary:", error);
+  }
 };

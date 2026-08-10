@@ -32,7 +32,7 @@ const categorySchema = new Schema<ICategory>(
       ref: "Category",
       default: null,
     },
-
+    imagePublicId: { type: String, default: "" }, // Add this line
     status: {
       type: String,
       enum: ["active", "inactive"],
