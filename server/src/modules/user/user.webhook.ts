@@ -3,16 +3,37 @@ import { Webhook } from "svix";
 import * as userService from "./user.service.js";
 import { env } from "../../config/env.js";
 
+interface ClerkEmailAddress {
+  id: string;
+  email_address: string;
+}
+
 interface ClerkWebhookEvent {
   type: string;
   data: {
     id: string;
-    email_addresses?: { email_address: string }[];
+    primary_email_address_id?: string;
+    email_addresses?: ClerkEmailAddress[];
     first_name?: string;
     last_name?: string;
+    image_url?: string;
+    has_image?: boolean; // <-- Add this
     public_metadata?: { role?: string };
   };
 }
+
+// Helper to reliably extract the primary email address
+const getPrimaryEmail = (data: ClerkWebhookEvent["data"]): string => {
+  if (!data.email_addresses || data.email_addresses.length === 0) return "";
+
+  const primary = data.email_addresses.find(
+    (e) => e.id === data.primary_email_address_id,
+  );
+
+  return (
+    primary?.email_address ?? data.email_addresses?.[0]?.email_address ?? ""
+  );
+};
 
 export const handleClerkWebhook = async (
   req: Request,
@@ -33,14 +54,6 @@ export const handleClerkWebhook = async (
 
     const webhook = new Webhook(env.CLERK_WEBHOOK_SECRET);
 
-    /*
-     * req.body MUST be the raw, unparsed request body (a Buffer/string)
-     * for signature verification to succeed — svix hashes the exact
-     * bytes Clerk sent. If express.json() already parsed this into a
-     * JS object before reaching here, verify() will throw. This is
-     * why the webhook route is mounted with express.raw() in app.ts,
-     * BEFORE the global express.json() middleware.
-     */
     const event = webhook.verify(req.body as Buffer, {
       "svix-id": svixId as string,
       "svix-timestamp": svixTimestamp as string,
@@ -49,12 +62,22 @@ export const handleClerkWebhook = async (
 
     switch (event.type) {
       case "user.created": {
-        const { id, email_addresses, first_name, last_name, public_metadata } =
-          event.data;
+        const {
+          id,
+          first_name,
+          last_name,
+          image_url,
+          has_image,
+          public_metadata,
+        } = event.data;
+
+        const primaryEmail = getPrimaryEmail(event.data);
 
         await userService.createUserFromClerk({
           clerkId: id,
-          email: email_addresses?.[0]?.email_address ?? "",
+          email: primaryEmail,
+          // Only set avatarUrl if a custom image actually exists
+          avatarUrl: has_image ? (image_url ?? "") : "",
           ...(first_name !== undefined && { firstName: first_name }),
           ...(last_name !== undefined && { lastName: last_name }),
           role: public_metadata?.role === "admin" ? "admin" : "customer",
@@ -63,13 +86,21 @@ export const handleClerkWebhook = async (
       }
 
       case "user.updated": {
-        const { id, email_addresses, first_name, last_name, public_metadata } =
-          event.data;
+        const {
+          id,
+          first_name,
+          last_name,
+          image_url,
+          has_image,
+          public_metadata,
+        } = event.data;
+
+        const primaryEmail = getPrimaryEmail(event.data);
 
         await userService.updateUserFromClerk(id, {
-          ...(email_addresses?.[0]?.email_address !== undefined && {
-            email: email_addresses[0].email_address,
-          }),
+          ...(primaryEmail && { email: primaryEmail }),
+          // Explicitly update avatarUrl to custom image URL or empty string
+          avatarUrl: has_image ? (image_url ?? "") : "",
           ...(first_name !== undefined && { firstName: first_name }),
           ...(last_name !== undefined && { lastName: last_name }),
           role: public_metadata?.role === "admin" ? "admin" : "customer",
@@ -78,11 +109,9 @@ export const handleClerkWebhook = async (
       }
 
       case "user.deleted": {
-        await userService.deactivateUserFromClerk(event.data.id);
+        await userService.deleteUserFromClerk(event.data.id);
         break;
       }
-
-      // Other event types (session.created, etc.) are ignored for now
     }
 
     return res.status(200).json({ success: true });

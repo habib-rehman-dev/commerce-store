@@ -1,6 +1,7 @@
 export interface IUser {
   clerkId: string;
   email: string;
+  avatarUrl : string;
   firstName?: string;
   lastName?: string;
   role: "customer" | "admin";

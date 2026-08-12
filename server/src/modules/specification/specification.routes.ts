@@ -6,7 +6,7 @@ import {
   specificationIdValidator,
 } from "./specification.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
-import { requireAuth, requireAdmin } from "../../shared/middleware/auth.js";
+import { requireAuth , requireAdmin } from "../../shared/middleware/auth.middleware.js";
 import { param } from "express-validator";
 
 const router = Router();
@@ -30,7 +30,7 @@ router.get(
 // POST /api/specifications — admin only
 router.post(
   "/",
-  requireAuth(),
+  requireAuth,
   requireAdmin,
   createSpecificationValidator,
   validate,
@@ -40,7 +40,7 @@ router.post(
 // PATCH /api/specifications/:id — admin only
 router.patch(
   "/:id",
-  requireAuth(),
+  requireAuth,
   requireAdmin,
   updateSpecificationValidator,
   validate,
@@ -50,7 +50,7 @@ router.patch(
 // DELETE /api/specifications/:id — admin only
 router.delete(
   "/:id",
-  requireAuth(),
+  requireAuth,
   requireAdmin,
   specificationIdValidator,
   validate,

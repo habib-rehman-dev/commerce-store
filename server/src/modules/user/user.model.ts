@@ -17,6 +17,10 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
+    avatarUrl: {
+      type: String,
+      trim: true,
+    },
 
     firstName: {
       type: String,

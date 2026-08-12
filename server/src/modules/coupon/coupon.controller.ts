@@ -41,7 +41,7 @@ export const getCouponById = async (
   next: NextFunction,
 ) => {
   try {
-    const coupon = await couponService.getCouponById(req.params.id);
+    const coupon = await couponService.getCouponById(req.params.id as string);
 
     if (!coupon) {
       return res.status(404).json({
@@ -65,7 +65,7 @@ export const updateCoupon = async (
   next: NextFunction,
 ) => {
   try {
-    const coupon = await couponService.updateCoupon(req.params.id, req.body);
+    const coupon = await couponService.updateCoupon(req.params.id as string, req.body);
 
     if (!coupon) {
       return res.status(404).json({
@@ -89,7 +89,7 @@ export const deleteCoupon = async (
   next: NextFunction,
 ) => {
   try {
-    const coupon = await couponService.deleteCoupon(req.params.id);
+    const coupon = await couponService.deleteCoupon(req.params.id as string);
 
     if (!coupon) {
       return res.status(404).json({
