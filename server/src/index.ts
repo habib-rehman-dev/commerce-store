@@ -10,6 +10,9 @@ import productRoutes from "./modules/product/product.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import userWebhookRoutes from "./modules/user/user.webhook.routes.js";
 import couponRoutes from "./modules/coupon/coupon.routes.js";
+import addressRoutes from "./modules/address/address.routes.js";
+import cartRoutes from "./modules/cart/cart.routes.js";
+import wishlistRoutes from "./modules/wishlist/wishlist.routes.js";
 
 const app = express();
 
@@ -39,6 +42,9 @@ app.use("/api/products", productRoutes);
 // app.use("/api/specifications", specificationRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // 404 for any route that didn't match above
 app.use((_req: Request, res: Response) => {
