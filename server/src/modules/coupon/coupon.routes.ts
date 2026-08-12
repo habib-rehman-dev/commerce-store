@@ -13,7 +13,7 @@ const router = Router();
 // GET /api/coupons — admin only, sees ALL coupons including inactive/expired
 router.get("/", requireAuth, requireAdmin, couponController.getCoupons);
 
-// GET /api/coupons/:id — admin only
+// GET /api/coupons/:id — admin only access
 router.get(
   "/:id",
   requireAuth,
