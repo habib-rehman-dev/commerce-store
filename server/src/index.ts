@@ -3,6 +3,7 @@ import cors from "cors";
 import { corsOptions } from "./config/cors.js";
 import { clerkMiddleware } from "./shared/middleware/auth.middleware.js";
 
+// import addressRoutes from "@/src/modules/address/address.routes.js"
 import categoryRoutes from "./modules/category/category.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
 import productRoutes from "./modules/product/product.routes.js";

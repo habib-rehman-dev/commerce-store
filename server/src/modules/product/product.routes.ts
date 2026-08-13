@@ -8,6 +8,7 @@ import {
 import { validate } from "../../shared/middleware/validate.js";
 import { parseProductData } from "../../shared/middleware/parseJsonBody.middleware.js";
 import { uploadProductImages } from "../../shared/middleware/upload.middleware.js";
+import { requireAdmin, requireAuth } from "../../shared/middleware/auth.middleware.js";
 const router = Router();
 
 // GET /api/products?categoryId=...&brandId=...&status=active
@@ -27,6 +28,8 @@ router.get(
 // POST /api/products
 router.post(
   "/",
+   requireAuth,
+  requireAdmin,
   uploadProductImages,
   parseProductData,
   createProductValidator,
@@ -36,6 +39,8 @@ router.post(
 // PATCH /api/products/:id
 router.patch(
   "/:id",
+   requireAuth,
+  requireAdmin,
   uploadProductImages,
   parseProductData,
   updateProductValidator,
@@ -44,5 +49,6 @@ router.patch(
 );
 // product.routes.ts
 // DELETE /api/products/:id
-router.delete("/:id", productController.deleteProduct);
+router.delete("/:id", requireAuth,
+  requireAdmin, productController.deleteProduct);
 export default router;

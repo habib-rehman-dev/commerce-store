@@ -7,6 +7,10 @@ import {
 } from "./category.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
 import { uploadSingleImage } from "../../shared/middleware/upload.middleware.js";
+import {
+  requireAdmin,
+  requireAuth,
+} from "../../shared/middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -35,15 +39,19 @@ router.get(
 // POST /api/categories
 router.post(
   "/",
+  requireAuth,
+  requireAdmin,
   uploadSingleImage,
   createCategoryValidator,
   validate,
   categoryController.createCategory,
 );
 
-// PATCH /api/categories/:id
+// PATCH /api/categories/:id   // here is missing the image update logic
 router.patch(
   "/:id",
+  requireAuth,
+  requireAdmin,
   updateCategoryValidator,
   validate,
   categoryController.updateCategory,
@@ -52,9 +60,40 @@ router.patch(
 // DELETE /api/categories/:id
 router.delete(
   "/:id",
+  requireAuth,
+  requireAdmin,
   categoryIdValidator,
   validate,
   categoryController.deleteCategory,
 );
 
 export default router;
+
+// router.post(
+//   "/",
+//   requireAuth(),
+//   requireAdmin,
+//   createCategoryValidator,
+//   validate,
+//   categoryController.createCategory,
+// );
+
+// // PATCH /api/categories/:id — admin only
+// router.patch(
+//   "/:id",
+//   requireAuth(),
+//   requireAdmin,
+//   updateCategoryValidator,
+//   validate,
+//   categoryController.updateCategory,
+// );
+
+// // DELETE /api/categories/:id — admin only
+// router.delete(
+//   "/:id",
+//   requireAuth(),
+//   requireAdmin,
+//   categoryIdValidator,
+//   validate,
+//   categoryController.deleteCategory,
+// );

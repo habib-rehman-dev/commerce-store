@@ -7,6 +7,7 @@ import {
 } from "./brand.validator.js";
 import { validate } from "../../shared/middleware/validate.js";
 import {  uploadSingleLogo } from "../../shared/middleware/upload.middleware.js";
+import { requireAdmin, requireAuth } from "../../shared/middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -22,6 +23,8 @@ router.get("/:id", brandIdValidator, validate, brandController.getBrandById);
 // POST /api/brands
 router.post(
   "/",
+  requireAuth,
+  requireAdmin,
   uploadSingleLogo,
   createBrandValidator,
   validate,
@@ -32,6 +35,8 @@ router.post(
 // PATCH /api/brands/:id
 router.patch(
   "/:id",
+   requireAuth,
+  requireAdmin,
   updateBrandValidator,
   validate,
   brandController.updateBrand,
@@ -40,6 +45,8 @@ router.patch(
 // DELETE /api/brands/:id
 router.delete(
   "/:id",
+   requireAuth,
+  requireAdmin,
   brandIdValidator,
   validate,
   brandController.deleteBrand,
