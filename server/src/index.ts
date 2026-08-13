@@ -6,7 +6,7 @@ import { clerkMiddleware } from "./shared/middleware/auth.middleware.js";
 import categoryRoutes from "./modules/category/category.routes.js";
 import brandRoutes from "./modules/brand/brand.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
-// import specificationRoutes from "./modules/specification/specification.routes.js";
+import specificationRoutes from "./modules/specification/specification.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import userWebhookRoutes from "./modules/user/user.webhook.routes.js";
 import couponRoutes from "./modules/coupon/coupon.routes.js";
@@ -39,7 +39,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/products", productRoutes);
-// app.use("/api/specifications", specificationRoutes);
+app.use("/api/specifications", specificationRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/addresses", addressRoutes);

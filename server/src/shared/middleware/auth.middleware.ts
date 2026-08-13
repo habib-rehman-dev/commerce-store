@@ -43,7 +43,7 @@ export const requireAdmin = (
   }
 
   // 2. Check publicMetadata for admin role
-  console.log("Session Claims:", sessionClaims); // Debugging line
+
   const metadata = sessionClaims?.metadata as { role?: string } | undefined;
 
   if (metadata?.role !== "admin") {

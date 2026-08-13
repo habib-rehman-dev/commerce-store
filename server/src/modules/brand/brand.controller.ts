@@ -7,8 +7,7 @@ export const createBrand = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log("request body", req.body);
-  console.log("request file", req.file);
+
   try {
     const brand = await brandService.createBrand(
       req.body,
