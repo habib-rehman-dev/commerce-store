@@ -14,6 +14,10 @@ import couponRoutes from "./modules/coupon/coupon.routes.js";
 import addressRoutes from "./modules/address/address.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import wishlistRoutes from "./modules/wishlist/wishlist.routes.js";
+import orderRoutes from "./modules/order/order.routes.js";
+import paymentRoutes from "./modules/payment/payment.routes.js";
+import paymentWebhookRoutes from "./modules/payment/payment.webhook.routes.js";
+import reviewRoutes from "./modules/review/review.routes.js";
 
 const app = express();
 
@@ -26,6 +30,7 @@ app.use(cors(corsOptions));
  * break silently with a confusing signature-mismatch error.
  */
 app.use("/api/webhooks", userWebhookRoutes);
+app.use("/api/webhooks", paymentWebhookRoutes);
 
 app.use(express.json());
 
@@ -46,6 +51,9 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // 404 for any route that didn't match above
 app.use((_req: Request, res: Response) => {
